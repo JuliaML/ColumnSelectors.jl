@@ -1,5 +1,5 @@
 # IndexSelector: select columns using indices
-struct IndexSelector <: ColSelector
+struct IndexSelector <: ColumnSelector
   inds::Vector{Int}
   function IndexSelector(inds)
     if isempty(inds)
@@ -11,14 +11,14 @@ end
 
 Base.show(io::IO, selector::IndexSelector) = print(io, selector.inds)
 
-colselector(inds::AbstractVector{<:Integer}) = IndexSelector(inds)
-colselector(inds::NTuple{N,<:Integer}) where {N} = IndexSelector(collect(inds))
+selector(inds::AbstractVector{<:Integer}) = IndexSelector(inds)
+selector(inds::NTuple{N,<:Integer}) where {N} = IndexSelector(collect(inds))
 
-choose(selector::IndexSelector, names) = choose(selector, asvector(names))
-choose(selector::IndexSelector, names::Vector{Symbol}) = names[selector.inds]
+select(selector::IndexSelector, names) = select(selector, _asvector(names))
+select(selector::IndexSelector, names::Vector{Symbol}) = names[selector.inds]
 
 # NameSelector: select columns using names
-struct NameSelector <: ColSelector
+struct NameSelector <: ColumnSelector
   names::Vector{Symbol}
   function NameSelector(names)
     if isempty(names)
@@ -30,56 +30,96 @@ end
 
 Base.show(io::IO, selector::NameSelector) = print(io, selector.names)
 
-colselector(names::AbstractVector{Symbol}) = NameSelector(names)
-colselector(names::AbstractVector{<:AbstractString}) = NameSelector(Symbol.(names))
-colselector(names::NTuple{N,Symbol}) where {N} = NameSelector(collect(names))
-colselector(names::NTuple{N,<:AbstractString}) where {N} = NameSelector(collect(Symbol.(names)))
+selector(names::AbstractVector{Symbol}) = NameSelector(names)
+selector(names::AbstractVector{<:AbstractString}) = NameSelector(Symbol.(names))
+selector(names::NTuple{N,Symbol}) where {N} = NameSelector(collect(names))
+selector(names::NTuple{N,<:AbstractString}) where {N} = NameSelector(collect(Symbol.(names)))
 
-choose(selector::NameSelector, names) = _choose(selector.names, names)
+select(selector::NameSelector, names) = _select(selector.names, names)
 
 # RegexSelector: select columns than match with regex
-struct RegexSelector <: ColSelector
+struct RegexSelector <: ColumnSelector
   regex::Regex
 end
 
 Base.show(io::IO, selector::RegexSelector) = print(io, selector.regex)
 
-colselector(regex::Regex) = RegexSelector(regex)
+selector(regex::Regex) = RegexSelector(regex)
 
-choose(selector::RegexSelector, names) = choose(selector, asvector(names))
-function choose(selector::RegexSelector, names::Vector{Symbol})
+select(selector::RegexSelector, names) = select(selector, _asvector(names))
+function select(selector::RegexSelector, names::Vector{Symbol})
   regex = selector.regex
   snames = filter(nm -> occursin(regex, String(nm)), names)
   @assert !isempty(snames) "regex doesn't match any names in input table"
-  _choose(snames, names)
+  _select(snames, names)
 end
 
 # AllSelector: select all columns
-struct AllSelector <: ColSelector end
+struct AllSelector <: ColumnSelector end
 
 Base.show(io::IO, ::AllSelector) = print(io, "all")
 
-colselector(::Colon) = AllSelector()
+selector(::Colon) = AllSelector()
 
-choose(::AllSelector, names) = asvector(names)
-choose(::AllSelector, names::Vector{Symbol}) = names
+select(::AllSelector, names) = _asvector(names)
+select(::AllSelector, names::Vector{Symbol}) = names
 
 # NoneSelector: select no column
-struct NoneSelector <: ColSelector end
+struct NoneSelector <: ColumnSelector end
 
 Base.show(io::IO, ::NoneSelector) = print(io, "none")
 
-colselector(::Nothing) = NoneSelector()
+selector(::Nothing) = NoneSelector()
 
-choose(::NoneSelector, names) = Symbol[]
+select(::NoneSelector, names) = Symbol[]
 
-# helper functions
-asvector(names) = asvector(collect(Symbol, names))
-asvector(names::AbstractArray{Symbol}) = vec(names)
-asvector(names::Vector{Symbol}) = names
+#-------------------------
+# SINGLE COLUMN SELECTION
+#-------------------------
 
-function _choose(snames::Vector{Symbol}, names)
+# SingleIndexSelector: select a single column using a index
+struct SingleIndexSelector <: SingleColumnSelector
+  ind::Int  
+end
+
+Base.show(io::IO, selector::SingleIndexSelector) = show(io, selector.ind)
+
+selector(ind::Integer) = SingleIndexSelector(ind)
+
+select(selector::SingleIndexSelector, names) = [selectsingle(selector, names)]
+
+selectsingle(selector::SingleIndexSelector, names) = selectsingle(selector, _asvector(names))
+selectsingle(selector::SingleIndexSelector, names::Vector{Symbol}) = names[selector.ind]
+
+# SingleNameSelector: select a single column using a name
+struct SingleNameSelector <: SingleColumnSelector
+  name::Symbol 
+end
+
+Base.show(io::IO, selector::SingleNameSelector) = show(io, selector.name)
+
+selector(name::Symbol) = SingleNameSelector(name)
+selector(name::AbstractString) = SingleNameSelector(Symbol(name))
+
+select(selector::SingleNameSelector, names) = [selectsingle(selector, names)]
+
+function selectsingle(selector::SingleNameSelector, names)
+  sname = selector.name
+  # validate selection
+  @assert sname ∈ names "name not present in input table"
+  sname
+end
+
+#-----------
+# UTILITIES
+#-----------
+
+_asvector(names) = _asvector(collect(Symbol, names))
+_asvector(names::AbstractArray{Symbol}) = vec(names)
+_asvector(names::Vector{Symbol}) = names
+
+function _select(snames::Vector{Symbol}, names)
   # validate columns
   @assert snames ⊆ names "names not present in input table"
-  return snames
+  snames
 end

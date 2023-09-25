@@ -1,4 +1,4 @@
-using ColumnSelectors
+import ColumnSelectors as CS
 using Test
 
 @testset "ColumnSelectors.jl" begin
@@ -6,141 +6,153 @@ using Test
   tupnames = (:a, :b, :c, :d, :e, :f)
 
   # vector of integers
-  selector = colselector([1, 3, 5])
-  snames = choose(selector, vecnames)
+  selector = CS.selector([1, 3, 5])
+  snames = selector(vecnames)
   @test snames == [:a, :c, :e]
-  snames = choose(selector, tupnames)
+  snames = selector(tupnames)
   @test snames == [:a, :c, :e]
 
   # tuple of integers
-  selector = colselector((1, 3, 5))
-  snames = choose(selector, vecnames)
+  selector = CS.selector((1, 3, 5))
+  snames = selector(vecnames)
   @test snames == [:a, :c, :e]
-  snames = choose(selector, tupnames)
+  snames = selector(tupnames)
   @test snames == [:a, :c, :e]
 
   # vector of symbols
-  selector = colselector([:a, :c, :e])
-  snames = choose(selector, vecnames)
+  selector = CS.selector([:a, :c, :e])
+  snames = selector(vecnames)
   @test snames == [:a, :c, :e]
-  snames = choose(selector, tupnames)
+  snames = selector(tupnames)
   @test snames == [:a, :c, :e]
 
   # tuple of symbols
-  selector = colselector((:a, :c, :e))
-  snames = choose(selector, vecnames)
+  selector = CS.selector((:a, :c, :e))
+  snames = selector(vecnames)
   @test snames == [:a, :c, :e]
-  snames = choose(selector, tupnames)
+  snames = selector(tupnames)
   @test snames == [:a, :c, :e]
 
   # vector of strings
-  selector = colselector(["a", "c", "e"])
-  snames = choose(selector, vecnames)
+  selector = CS.selector(["a", "c", "e"])
+  snames = selector(vecnames)
   @test snames == [:a, :c, :e]
-  snames = choose(selector, tupnames)
+  snames = selector(tupnames)
   @test snames == [:a, :c, :e]
 
   # tuple of strings
-  selector = colselector(("a", "c", "e"))
-  snames = choose(selector, vecnames)
+  selector = CS.selector(("a", "c", "e"))
+  snames = selector(vecnames)
   @test snames == [:a, :c, :e]
-  snames = choose(selector, tupnames)
+  snames = selector(tupnames)
   @test snames == [:a, :c, :e]
 
   # regex
-  selector = colselector(r"[ace]")
-  snames = choose(selector, vecnames)
+  selector = CS.selector(r"[ace]")
+  snames = selector(vecnames)
   @test snames == [:a, :c, :e]
-  snames = choose(selector, tupnames)
+  snames = selector(tupnames)
   @test snames == [:a, :c, :e]
 
   # colon
-  selector = colselector(:)
-  snames = choose(selector, vecnames)
+  selector = CS.selector(:)
+  snames = selector(vecnames)
   @test snames == [:a, :b, :c, :d, :e, :f]
-  snames = choose(selector, tupnames)
+  snames = selector(tupnames)
   @test snames == [:a, :b, :c, :d, :e, :f]
 
   # nothing
-  selector = colselector(nothing)
-  snames = choose(selector, vecnames)
+  selector = CS.selector(nothing)
+  snames = selector(vecnames)
   @test snames == Symbol[]
-  snames = choose(selector, tupnames)
+  snames = selector(tupnames)
   @test snames == Symbol[]
 
   # single integer
-  selector = colselector(3)
-  snames = choose(selector, vecnames)
-  @test snames == [:c]
-  snames = choose(selector, tupnames)
-  @test snames == [:c]
+  selector = CS.selector(1)
+  sname = CS.selectsingle(selector, vecnames)
+  snames = CS.select(selector, vecnames)
+  @test sname == :a
+  @test snames == [:a]
+  sname = CS.selectsingle(selector, tupnames)
+  snames = CS.select(selector, tupnames)
+  @test sname == :a
+  @test snames == [:a]
 
   # single symbol
-  selector = colselector(:a)
-  snames = choose(selector, vecnames)
-  @test snames == [:a]
-  snames = choose(selector, tupnames)
-  @test snames == [:a]
+  selector = CS.selector(:b)
+  sname = CS.selectsingle(selector, vecnames)
+  snames = CS.select(selector, vecnames)
+  @test sname == :b
+  @test snames == [:b]
+  sname = CS.selectsingle(selector, tupnames)
+  snames = CS.select(selector, tupnames)
+  @test sname == :b
+  @test snames == [:b]
 
   # single string
-  selector = colselector("b")
-  snames = choose(selector, vecnames)
-  @test snames == [:b]
-  snames = choose(selector, tupnames)
-  @test snames == [:b]
+  selector = CS.selector("c")
+  sname = CS.selectsingle(selector, vecnames)
+  snames = CS.select(selector, vecnames)
+  @test sname == :c
+  @test snames == [:c]
+  sname = CS.selectsingle(selector, tupnames)
+  snames = CS.select(selector, tupnames)
+  @test sname == :c
+  @test snames == [:c]
 
   # throws
   # invalid selector
-  @test_throws ArgumentError colselector(missing)
+  @test_throws ArgumentError CS.selector(missing)
   # empty selection
-  @test_throws ArgumentError colselector(())
-  @test_throws ArgumentError colselector(Int[])
-  @test_throws ArgumentError colselector(Symbol[])
-  @test_throws ArgumentError colselector(String[])
+  @test_throws ArgumentError CS.selector(())
+  @test_throws ArgumentError CS.selector(Int[])
+  @test_throws ArgumentError CS.selector(Symbol[])
+  @test_throws ArgumentError CS.selector(String[])
   # regex doesn't match any names in input table
-  selector = colselector(r"x")
-  @test_throws AssertionError choose(selector, vecnames)
-  @test_throws AssertionError choose(selector, tupnames)
+  selector = CS.selector(r"x")
+  @test_throws AssertionError CS.select(selector, vecnames)
+  @test_throws AssertionError CS.select(selector, tupnames)
   # names not present in input table
-  selector = colselector([:x, :a])
-  @test_throws AssertionError choose(selector, vecnames)
-  @test_throws AssertionError choose(selector, tupnames)
+  selector = CS.selector([:x, :a])
+  @test_throws AssertionError CS.select(selector, vecnames)
+  @test_throws AssertionError CS.select(selector, tupnames)
 
   # type stability
-  selector = colselector([1, 2])
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector((1, 2))
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector([:a, :b])
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector((:a, :b))
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector(["a", "b"])
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector(("a", "b"))
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector(r"[ab]")
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector(:)
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector(nothing)
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector(3)
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector(:a)
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
-  selector = colselector("b")
-  @inferred choose(selector, vecnames)
-  @inferred choose(selector, tupnames)
+  selector = CS.selector([1, 2])
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector((1, 2))
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector([:a, :b])
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector((:a, :b))
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector(["a", "b"])
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector(("a", "b"))
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector(r"[ab]")
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector(:)
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector(nothing)
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector(3)
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector(:a)
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
+  selector = CS.selector("b")
+  @inferred CS.select(selector, vecnames)
+  @inferred CS.select(selector, tupnames)
 end
