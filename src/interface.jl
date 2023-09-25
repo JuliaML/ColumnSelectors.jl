@@ -148,8 +148,8 @@ function selectsingle end
 # fallbacks
 (selector::ColumnSelector)(names) = select(selector, names)
 
-select(selector::SingleColumnSelector, names) = [selectsingle(selector, names)]
-
 selector(s::ColumnSelector) = s
 selector(::Any) = throw(ArgumentError("invalid column selection"))
 selector(::Tuple{}) = throw(ArgumentError("column selection cannot be empty"))
+
+select(selector::SingleColumnSelector, names) = [selectsingle(selector, names)]
