@@ -86,8 +86,6 @@ Base.show(io::IO, selector::SingleIndexSelector) = show(io, selector.ind)
 
 selector(ind::Integer) = SingleIndexSelector(ind)
 
-select(selector::SingleIndexSelector, names) = [selectsingle(selector, names)]
-
 selectsingle(selector::SingleIndexSelector, names) = selectsingle(selector, _asvector(names))
 selectsingle(selector::SingleIndexSelector, names::Vector{Symbol}) = names[selector.ind]
 
@@ -100,8 +98,6 @@ Base.show(io::IO, selector::SingleNameSelector) = show(io, selector.name)
 
 selector(name::Symbol) = SingleNameSelector(name)
 selector(name::AbstractString) = SingleNameSelector(Symbol(name))
-
-select(selector::SingleNameSelector, names) = [selectsingle(selector, names)]
 
 function selectsingle(selector::SingleNameSelector, names)
   sname = selector.name
