@@ -14,8 +14,7 @@ Base.show(io::IO, selector::IndexSelector) = print(io, selector.inds)
 selector(inds::AbstractVector{<:Integer}) = IndexSelector(inds)
 selector(inds::NTuple{N,<:Integer}) where {N} = IndexSelector(collect(inds))
 
-select(selector::IndexSelector, names) = select(selector, _asvector(names))
-select(selector::IndexSelector, names::Vector{Symbol}) = names[selector.inds]
+select(selector::IndexSelector, names) = _asvector(names)[selector.inds]
 
 # NameSelector: select columns using names
 struct NameSelector <: ColumnSelector
@@ -46,12 +45,12 @@ Base.show(io::IO, selector::RegexSelector) = print(io, selector.regex)
 
 selector(regex::Regex) = RegexSelector(regex)
 
-select(selector::RegexSelector, names) = select(selector, _asvector(names))
-function select(selector::RegexSelector, names::Vector{Symbol})
+function select(selector::RegexSelector, names)
   regex = selector.regex
-  snames = filter(nm -> occursin(regex, String(nm)), names)
+  vecnms = _asvector(names)
+  snames = filter(nm -> occursin(regex, String(nm)), vecnms)
   @assert !isempty(snames) "regex doesn't match any names in input table"
-  _select(snames, names)
+  _select(snames, vecnms)
 end
 
 # AllSelector: select all columns
@@ -62,7 +61,6 @@ Base.show(io::IO, ::AllSelector) = print(io, "all")
 selector(::Colon) = AllSelector()
 
 select(::AllSelector, names) = _asvector(names)
-select(::AllSelector, names::Vector{Symbol}) = names
 
 # NoneSelector: select no column
 struct NoneSelector <: ColumnSelector end
@@ -86,8 +84,7 @@ Base.show(io::IO, selector::SingleIndexSelector) = show(io, selector.ind)
 
 selector(ind::Integer) = SingleIndexSelector(ind)
 
-selectsingle(selector::SingleIndexSelector, names) = selectsingle(selector, _asvector(names))
-selectsingle(selector::SingleIndexSelector, names::Vector{Symbol}) = names[selector.ind]
+selectsingle(selector::SingleIndexSelector, names) = names[selector.ind]
 
 # SingleNameSelector: select a single column using a name
 struct SingleNameSelector <: SingleColumnSelector
