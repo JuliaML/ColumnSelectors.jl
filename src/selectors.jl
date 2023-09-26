@@ -111,7 +111,7 @@ end
 #-----------
 
 _asvector(names::Vector{Symbol}) = names
-_asvector(names)::Vector{Symbol} = collect(names)
+_asvector(names)::Vector{Symbol} = vec(collect(names))
 
 function _select(snames::Vector{Symbol}, names)
   # validate selection
