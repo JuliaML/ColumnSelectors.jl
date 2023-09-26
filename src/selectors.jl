@@ -79,7 +79,7 @@ select(::NoneSelector, names) = Symbol[]
 
 # SingleIndexSelector: select a single column using a index
 struct SingleIndexSelector <: SingleColumnSelector
-  ind::Int  
+  ind::Int
 end
 
 Base.show(io::IO, selector::SingleIndexSelector) = show(io, selector.ind)
@@ -91,7 +91,7 @@ selectsingle(selector::SingleIndexSelector, names::Vector{Symbol}) = names[selec
 
 # SingleNameSelector: select a single column using a name
 struct SingleNameSelector <: SingleColumnSelector
-  name::Symbol 
+  name::Symbol
 end
 
 Base.show(io::IO, selector::SingleNameSelector) = show(io, selector.name)
