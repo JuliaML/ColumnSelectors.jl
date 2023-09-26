@@ -29,7 +29,7 @@ abstract type SingleColumnSelector <: ColumnSelector end
 """
     selector(obj) -> ColumnSelector
 
-Trait function than converts the `obj` argument to a `ColumnSelector` object.
+Trait function that converts the `obj` argument to a `ColumnSelector` object.
 
 # Examples
 
@@ -59,7 +59,7 @@ function selector end
 Select column `names` using a `selector`.
 
 Calling the `select` function directly is not necessary because
-all selectors when called as functors call this function.
+all selectors, when called as functors, call this function.
 
 # Examples
 
@@ -73,10 +73,10 @@ julia> select(selector((1, 3, 5)), names)
  :e
 
 julia> selector([1, 3, 5])(names) # calls the select function
- 3-element Vector{Symbol}:
-  :a
-  :c
-  :e
+3-element Vector{Symbol}:
+ :a
+ :c
+ :e
 
 julia> select(selector([:a, :c, :e]), names)
 3-element Vector{Symbol}:
@@ -90,6 +90,24 @@ julia> select(selector(["a", "c", "e"]), names)
  :c
  :e
 
+julia> select(RegexSelector(r"[ace]"), names)
+3-element Vector{Symbol}:
+ :a
+ :c
+ :e
+
+julia> select(AllSelector(), names)
+6-element Vector{Symbol}:
+ :a
+ :b
+ :c
+ :d
+ :e
+ :f
+
+julia> select(NoneSelector(), names)
+Symbol[]
+
 julia> select(selector(1), names)
 1-element Vector{Symbol}:
  :a
@@ -101,24 +119,6 @@ julia> select(selector(:c), names)
 julia> select(selector("e"), names)
 1-element Vector{Symbol}:
  :e
-
-julia> select(RegexSelector(r"[ace]"), names)
-3-element Vector{Symbol}:
- :a
- :c
- :e
-
-julia> select(AllSelector(), names)
-6-element Vector{Symbol}:
-  :a
-  :b
-  :c
-  :d
-  :e
-  :f
-
-julia> select(NoneSelector(), names)
-Symbol[]
 ```
 """
 function select end
