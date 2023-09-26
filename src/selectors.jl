@@ -110,12 +110,11 @@ end
 # UTILITIES
 #-----------
 
-_asvector(names) = _asvector(collect(Symbol, names))
-_asvector(names::AbstractArray{Symbol}) = vec(names)
 _asvector(names::Vector{Symbol}) = names
+_asvector(names)::Vector{Symbol} = vec(collect(names))
 
 function _select(snames::Vector{Symbol}, names)
-  # validate columns
+  # validate selection
   @assert snames ⊆ names "names not present in input table"
   snames
 end

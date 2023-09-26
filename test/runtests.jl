@@ -101,6 +101,26 @@ using Test
   @test sname == :c
   @test snames == [:c]
 
+  # shows
+  selector = CS.selector([1, 2, 3])
+  @test sprint(show, selector) == "[1, 2, 3]"
+  selector = CS.selector((:a, :b, :c))
+  @test sprint(show, selector) == "[:a, :b, :c]"
+  selector = CS.selector(["a", "b", "c"])
+  @test sprint(show, selector) == "[:a, :b, :c]"
+  selector = CS.selector(r"[abc]")
+  @test sprint(show, selector) == "r\"[abc]\""
+  selector = CS.selector(:)
+  @test sprint(show, selector) == "all"
+  selector = CS.selector(nothing)
+  @test sprint(show, selector) == "none"
+  selector = CS.selector(1)
+  @test sprint(show, selector) == "1"
+  selector = CS.selector(:b)
+  @test sprint(show, selector) == ":b"
+  selector = CS.selector("c")
+  @test sprint(show, selector) == ":c"
+
   # throws
   # invalid selector
   @test_throws ArgumentError CS.selector(missing)
