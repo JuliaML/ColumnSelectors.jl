@@ -34,7 +34,12 @@ selector(names::AbstractVector{<:AbstractString}) = NameSelector(Symbol.(names))
 selector(names::NTuple{N,Symbol}) where {N} = NameSelector(collect(names))
 selector(names::NTuple{N,<:AbstractString}) where {N} = NameSelector(collect(Symbol.(names)))
 
-select(selector::NameSelector, names) = _select(selector.names, names)
+function select(selector::NameSelector, names)
+  snames = selector.names
+  # validate selection
+  @assert snames ⊆ names "names not present in input table"
+  snames
+end
 
 # RegexSelector: select columns than match with regex
 struct RegexSelector <: ColumnSelector
@@ -47,10 +52,9 @@ selector(regex::Regex) = RegexSelector(regex)
 
 function select(selector::RegexSelector, names)
   regex = selector.regex
-  vecnms = _asvector(names)
-  snames = filter(nm -> occursin(regex, String(nm)), vecnms)
+  snames = filter(nm -> occursin(regex, String(nm)), _asvector(names))
   @assert !isempty(snames) "regex doesn't match any names in input table"
-  _select(snames, vecnms)
+  snames
 end
 
 # AllSelector: select all columns
@@ -109,9 +113,3 @@ end
 
 _asvector(names::Vector{Symbol}) = names
 _asvector(names)::Vector{Symbol} = vec(collect(names))
-
-function _select(snames::Vector{Symbol}, names)
-  # validate selection
-  @assert snames ⊆ names "names not present in input table"
-  snames
-end
