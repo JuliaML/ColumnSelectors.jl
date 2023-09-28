@@ -5,6 +5,9 @@ struct IndexSelector <: ColumnSelector
     if isempty(inds)
       throw(ArgumentError("column selection cannot be empty"))
     end
+    if !allunique(inds)
+      throw(ArgumentError("column indices must be unique"))
+    end
     new(inds)
   end
 end
@@ -22,6 +25,9 @@ struct NameSelector <: ColumnSelector
   function NameSelector(names)
     if isempty(names)
       throw(ArgumentError("column selection cannot be empty"))
+    end
+    if !allunique(names)
+      throw(ArgumentError("column names must be unique"))
     end
     new(names)
   end
